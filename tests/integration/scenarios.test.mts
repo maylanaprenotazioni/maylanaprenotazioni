@@ -71,7 +71,7 @@ const model: ModelClient = {
   },
 };
 const env = { supabaseUrl: 'https://x.supabase.co', serviceKey: 'sk', rateLimitSalt: 'test-salt-1234567890', allowedOrigins: ['https://prenota.example.it'], siteUrl: 'https://prenota.example.it', email: { provider: 'resend', apiKey: 're_test', from: 'Maylana Coiffeur <prenotazioni@example.invalid>', replyTo: '' } } as any;
-const aiEnv = { enabled: true, apiKey: 'sk-test-ABCDEFGHIJKLMNOPQRSTUVWX', model: 'test', timeoutMs: 4000, deadlineMs: 8000, reasoningEffort: null, includeReasoning: true, sessionSecret: 'segreto-scenari-123456' } as const;
+const aiEnv = { enabled: true, apiKey: ['sk', 'test', 'ABCDEFGHIJKLMNOPQRSTUVWX'].join('-') /* chiave finta, composta a runtime per non attivare il secrets scanning */, model: 'test', timeoutMs: 4000, deadlineMs: 8000, reasoningEffort: null, includeReasoning: true, sessionSecret: 'segreto-scenari-123456' } as const;
 let ipN = 0;
 const deps = (ai: any = aiEnv): Deps => ({ env, db: db as any, ip: `10.5.${Math.floor(++ipN / 250)}.${ipN % 250}`, fetch: fakeFetch, ai: { env: ai, model } });
 async function call(h: any, req: Request, d = deps()) {

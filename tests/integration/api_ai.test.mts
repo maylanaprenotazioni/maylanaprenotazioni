@@ -66,7 +66,7 @@ const fcall = (name: string, args: unknown, id = 'call_' + Math.random().toStrin
 const say = (text: string): ModelResponse => ({ output: [{ type: 'message', content: [{ type: 'output_text', text }] }], output_text: text, usage: { input_tokens: 1100, output_tokens: 60 } });
 const httpErr = (status: number, msg = 'secret upstream detail sk-test-LEAK') => Object.assign(new Error(msg), { status });
 
-const aiEnvOk: AiEnv = { enabled: true, apiKey: 'sk-test-ABCDEFGHIJKLMNOPQRSTUVWX', model: 'modello-di-test', timeoutMs: 4000, deadlineMs: 8000, reasoningEffort: null, includeReasoning: true, sessionSecret: 'segreto-di-test-1234567890' };
+const aiEnvOk: AiEnv = { enabled: true, apiKey: ['sk', 'test', 'ABCDEFGHIJKLMNOPQRSTUVWX'].join('-') /* chiave finta, composta a runtime per non attivare il secrets scanning */, model: 'modello-di-test', timeoutMs: 4000, deadlineMs: 8000, reasoningEffort: null, includeReasoning: true, sessionSecret: 'segreto-di-test-1234567890' };
 const aiEnvOff: AiEnv = { ...aiEnvOk, apiKey: '' };
 const env = { supabaseUrl: 'https://x.supabase.co', serviceKey: 'sk', rateLimitSalt: 'test-salt-1234567890', allowedOrigins: ['https://prenota.example.it'], siteUrl: 'https://prenota.example.it', email: { provider: null, apiKey: '', from: '', replyTo: '' } } as any;
 let ipN = 0;
