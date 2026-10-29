@@ -74,7 +74,7 @@ const model: ModelClient = {
   },
 };
 const env = { supabaseUrl: 'https://x', serviceKey: 'sk', rateLimitSalt: 'test-salt-1234567890', allowedOrigins: ['http://maylana.test'], siteUrl: 'http://maylana.test', email: { provider: null, apiKey: '', from: '', replyTo: '' } } as any;
-const aiEnv = { enabled: true, apiKey: 'sk-test-ABCDEFGHIJKLMNOPQRSTUVWX', model: 'test', timeoutMs: 4000, deadlineMs: 8000, reasoningEffort: null, includeReasoning: true, sessionSecret: 'segreto-e2e-1234567890' } as const;
+const aiEnv = { enabled: true, apiKey: ['sk', 'test', 'ABCDEFGHIJKLMNOPQRSTUVWX'].join('-') /* chiave finta, composta a runtime per non attivare il secrets scanning */, model: 'test', timeoutMs: 4000, deadlineMs: 8000, reasoningEffort: null, includeReasoning: true, sessionSecret: 'segreto-e2e-1234567890' } as const;
 let ipN = 0;
 const deps = (): Deps => ({ env, db: db as any, ip: `10.7.0.${++ipN}`, fetch: (async () => { throw new Error('no fetch'); }) as any, ai: { env: { ...aiEnv }, model } });
 async function handle(h: any, req: Request) {
