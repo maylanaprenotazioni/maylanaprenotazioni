@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="112" fill="#1D1A17"/>
+  <g transform="translate(256 256) scale(1.05) translate(-256 -256)" color="#C8AD7F" style="color:#C8AD7F">
+  <!-- Monogramma "M" in stile Didone (aste spesse/sottili). Sostituibile con il logo ufficiale. -->
+  <g fill="#C8AD7F">
+    <rect x="150" y="152" width="9" height="208"/>
+    <polygon points="150,152 190,152 266,336 254,362"/>
+    <polygon points="250,352 344,152 353,152 259,362"/>
+    <rect x="338" y="152" width="34" height="208"/>
+    <rect x="128" y="150" width="62" height="5"/>
+    <rect x="128" y="357" width="54" height="5"/>
+    <rect x="320" y="150" width="74" height="5"/>
+    <rect x="320" y="357" width="74" height="5"/>
+  </g>
+</g>
+</svg>
