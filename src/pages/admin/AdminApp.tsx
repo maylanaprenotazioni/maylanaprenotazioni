@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
-import { supabase, dbMessage } from '../../lib/supabase';
+import { supabase, dbMessage, RESET_PASSWORD_URL } from '../../lib/supabase';
 import { api } from '../../lib/api';
 import type { Service, Staff } from '../../lib/types';
-import { Alert, Button, Input, Spinner, cx } from '../../components/ui';
+import { Alert, Button, Input, cx } from '../../components/ui';
 import { Brand } from '../../components/Brand';
+import { FORGOT_HASH, Loading, Shell } from './AuthShell';
 import { AdminContext, type AdminCtx, type Role, type Tab } from './context';
 import Overview from './Overview';
 import Agenda from './Agenda';
@@ -52,28 +53,21 @@ export default function AdminApp() {
   return <Authorized session={session} />;
 }
 
-function Shell({ children }: { children: ReactNode }) {
-  return (
-    <div className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center gap-8 px-5 py-10">
-      <Brand name="Maylana Coiffeur" />
-      {children}
-    </div>
-  );
-}
-
-function Loading() {
-  return (
-    <div className="flex min-h-dvh items-center justify-center text-taupe">
-      <Spinner />
-    </div>
-  );
-}
-
 function Login() {
+  const [forgot, setForgot] = useState(() => location.hash === FORGOT_HASH);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sent, setSent] = useState(false);
+
+  const switchTo = (toForgot: boolean) => {
+    setForgot(toForgot);
+    setError(null);
+    setSent(false);
+    setPassword('');
+    history.replaceState(null, '', '/admin' + (toForgot ? FORGOT_HASH : ''));
+  };
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -83,6 +77,42 @@ function Login() {
     setBusy(false);
     if (error) setError(error.message === 'Invalid login credentials' ? 'Email o password non corretti.' : error.message);
   };
+
+  const sendReset = async (e: FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    const { error } = await supabase!.auth.resetPasswordForEmail(email.trim(), { redirectTo: RESET_PASSWORD_URL });
+    setBusy(false);
+    if (!error) return setSent(true);
+    if (error.status === 429 || /rate limit/i.test(error.message)) setError('Troppe richieste: attendi qualche minuto e riprova.');
+    else setError(/failed to fetch|network/i.test(error.message) ? 'Connessione assente: email non inviata. Riprova.' : error.message);
+  };
+
+  if (forgot) {
+    return (
+      <Shell>
+        <form onSubmit={sendReset} className="space-y-4">
+          <h1 className="text-center font-display text-2xl">Password dimenticata</h1>
+          {sent ? (
+            <Alert tone="ok">Se l'indirizzo è abilitato, riceverai a breve un'email con il link per impostare una nuova password. Controlla anche la cartella spam.</Alert>
+          ) : (
+            <>
+              <p className="text-center text-sm text-taupe">Inserisci l'email dell'area riservata: ti invieremo un link per impostare una nuova password.</p>
+              <Input label="Email" type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} required />
+              {error && <Alert>{error}</Alert>}
+              <Button type="submit" busy={busy} className="w-full">
+                Invia link di recupero
+              </Button>
+            </>
+          )}
+          <Button type="button" variant="ghost" className="w-full" onClick={() => switchTo(false)}>
+            Torna all'accesso
+          </Button>
+        </form>
+      </Shell>
+    );
+  }
 
   return (
     <Shell>
@@ -94,6 +124,9 @@ function Login() {
         <Button type="submit" busy={busy} className="w-full">
           Accedi
         </Button>
+        <button type="button" onClick={() => switchTo(true)} className="block w-full text-center text-sm text-taupe underline underline-offset-4 hover:text-ink">
+          Password dimenticata?
+        </button>
       </form>
     </Shell>
   );
