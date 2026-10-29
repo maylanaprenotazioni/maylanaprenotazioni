@@ -3,6 +3,29 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
 const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 
+/**
+ * URL di apertura, letto PRIMA di creare il client: Supabase elabora (e ripulisce)
+ * #access_token / ?code del link email in modo asincrono, quindi la pagina di
+ * recupero password lavora su questa copia. Non va mai stampata nei log.
+ */
+export const initialAuthUrl = typeof window !== 'undefined' ? window.location.href : '';
+
+/** Indirizzo a cui Supabase rimanda dal link "reimposta password" (deve essere tra i Redirect URL autorizzati). */
+export const RESET_PASSWORD_URL = 'https://maylana.netlify.app/admin/reset-password';
+
+/** Parametri del link di recupero (query + frammento). */
+export function authUrlParams(href = initialAuthUrl): Record<string, string> {
+  const out: Record<string, string> = {};
+  try {
+    const u = new URL(href);
+    u.searchParams.forEach((v, k) => (out[k] = v));
+    new URLSearchParams(u.hash.replace(/^#/, '')).forEach((v, k) => (out[k] = v));
+  } catch {
+    /* URL non valido: nessun parametro */
+  }
+  return out;
+}
+
 /** Client usato SOLO nell'area /admin (chiave pubblica + login; dati protetti da RLS). */
 export const supabase: SupabaseClient | null =
   url && key ? createClient(url, key, { auth: { persistSession: true, autoRefreshToken: true } }) : null;

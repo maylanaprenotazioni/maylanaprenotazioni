@@ -49,6 +49,12 @@
     X-Robots-Tag = "noindex, nofollow"
     Cache-Control = "no-store"
 
+# Link di recupero password: il codice nell'URL non deve finire nel Referer
+[[headers]]
+  for = "/admin/reset-password*"
+  [headers.values]
+    Referrer-Policy = "no-referrer"
+
 # Service worker: sempre la versione più recente
 [[headers]]
   for = "/sw.js"
