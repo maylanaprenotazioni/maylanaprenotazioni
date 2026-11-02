@@ -2,7 +2,7 @@ import { createContext, useContext } from 'react';
 import type { Service, Staff } from '../../lib/types';
 
 export type Role = 'owner' | 'staff';
-export type Tab = 'panoramica' | 'agenda' | 'richieste' | 'clienti' | 'storico' | 'orari' | 'servizi' | 'operatori' | 'impostazioni' | 'ai';
+export type Tab = 'configura' | 'panoramica' | 'agenda' | 'richieste' | 'clienti' | 'storico' | 'orari' | 'servizi' | 'operatori' | 'impostazioni' | 'ai';
 
 export interface AdminCtx {
   role: Role;

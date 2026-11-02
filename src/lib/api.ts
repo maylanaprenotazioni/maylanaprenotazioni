@@ -1,4 +1,5 @@
 import type { BookedAppointment, BundleSummary, Catalog, ManagedAppointment, TimeOption } from './types';
+import { isDemo } from './demo';
 import type { AiAction, AiChatResponse, AiHistoryItem, AiPublicStatus } from './ai-types';
 
 export class ApiError extends Error {
@@ -41,6 +42,14 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 const post = <T>(path: string, payload: unknown, headers?: Record<string, string>) =>
   request<T>(path, { method: 'POST', body: JSON.stringify(payload), headers });
 
+/** Stato dei servizi esterni mostrato nella demo dell'area riservata (nessuna chiamata al server). */
+const DEMO_STATUS = {
+  email: { configured: true, problem: null, provider: 'demo', from: 'Maylana Coiffeur <demo@esempio.it>' },
+  site_url: 'https://maylana.netlify.app',
+  whatsapp_cloud: { active: false, problems: [] },
+  ai: { configured: false, model: null, problems: ['Modalità demo: assistente non collegato'] },
+};
+
 export const api = {
   catalog: () => request<Catalog>('/api/catalog'),
   availability: (serviceIds: string[], date: string, staffId: string | null) => {
@@ -75,7 +84,7 @@ export const api = {
 
   // Area admin: JWT Supabase verificato dal server
   adminStatus: (jwt: string) =>
-    request<{
+    isDemo() ? Promise.resolve(DEMO_STATUS) : request<{
       email: { configured: boolean; problem: string | null; provider: string | null; from: string | null };
       site_url: string | null;
       whatsapp_cloud: { active: boolean; problems: string[] };
@@ -84,5 +93,5 @@ export const api = {
       headers: { Authorization: `Bearer ${jwt}` },
     }),
   adminDispatch: (jwt: string, ids: string[]) =>
-    post<{ results: { id: string; status: string; error?: string }[]; email_configured: boolean }>('/api/admin/dispatch', { ids }, { Authorization: `Bearer ${jwt}` }),
+    isDemo() ? Promise.resolve({ results: [], email_configured: true }) : post<{ results: { id: string; status: string; error?: string }[]; email_configured: boolean }>('/api/admin/dispatch', { ids }, { Authorization: `Bearer ${jwt}` }),
 };

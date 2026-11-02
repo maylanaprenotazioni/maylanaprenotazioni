@@ -91,19 +91,7 @@ export default function ResetPassword() {
   const goLogin = () => location.assign('/admin');
   const goForgot = () => location.assign('/admin' + FORGOT_HASH);
 
-  if (status === 'done') {
-    return (
-      <Shell>
-        <div className="space-y-4">
-          <h1 className="text-center font-display text-2xl">Password aggiornata</h1>
-          <Alert tone="ok">La nuova password è stata salvata. Ora puoi accedere all'area riservata.</Alert>
-          <Button className="w-full" onClick={goLogin}>
-            Vai al login amministratore
-          </Button>
-        </div>
-      </Shell>
-    );
-  }
+  if (status === 'done') return <Done />;
 
   const message =
     status === 'missing'
@@ -149,8 +137,7 @@ function NewPasswordForm({ onDone, onExpired }: { onDone: () => void; onExpired:
       if (code === 'session_expired' || code === 'session_not_found' || error.status === 401) return onExpired();
       return setError(/failed to fetch|network/i.test(error.message) ? 'Connessione assente: la password NON è stata salvata. Riprova.' : error.message);
     }
-    // Chiude la sessione di recupero: l'accesso si fa con la nuova password.
-    await supabase!.auth.signOut({ scope: 'local' }).catch(() => undefined);
+    // La sessione resta attiva: dal link finale si entra subito nell'area riservata.
     setPassword('');
     setConfirm('');
     setBusy(false);
@@ -184,6 +171,27 @@ function NewPasswordForm({ onDone, onExpired }: { onDone: () => void; onExpired:
           Salva nuova password
         </Button>
       </form>
+    </Shell>
+  );
+}
+
+/** Password salvata: porta direttamente nell'area riservata (sessione già attiva). */
+function Done() {
+  const enter = () => location.assign('/admin');
+  useEffect(() => {
+    const t = setTimeout(enter, 2500);
+    return () => clearTimeout(t);
+  }, []);
+  return (
+    <Shell>
+      <div className="space-y-4">
+        <h1 className="text-center font-display text-2xl">Password aggiornata</h1>
+        <Alert tone="ok">La nuova password è stata salvata. Tra un istante entri nell'area riservata.</Alert>
+        <Button className="w-full" onClick={enter}>
+          Entra nell'area riservata
+        </Button>
+        <p className="text-center text-xs text-taupe">Sull'app installata nella schermata Home accedi con email e nuova password.</p>
+      </div>
     </Shell>
   );
 }
