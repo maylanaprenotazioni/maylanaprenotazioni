@@ -14,11 +14,6 @@
   targetPort = 5173
   port = 8888
 
-[[redirects]]
-  from = "/"
-  to = "/prenota"
-  status = 302
-
 # Le API sono Netlify Functions con "path" nel codice (netlify/functions/*.ts):
 # vengono eseguite prima di queste regole. Un /api/... inesistente riceve 404 JSON
 # invece della pagina dell'app (regola posta PRIMA del fallback SPA).
