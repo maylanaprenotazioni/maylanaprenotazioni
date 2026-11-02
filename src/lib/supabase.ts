@@ -27,8 +27,13 @@ export function authUrlParams(href = initialAuthUrl): Record<string, string> {
 }
 
 /** Client usato SOLO nell'area /admin (chiave pubblica + login; dati protetti da RLS). */
-export const supabase: SupabaseClient | null =
+export let supabase: SupabaseClient | null =
   url && key ? createClient(url, key, { auth: { persistSession: true, autoRefreshToken: true } }) : null;
+
+/** Sostituisce il client con quello della demo (/admin/demo): nessun accesso ai dati reali. */
+export function installDemoClient(client: SupabaseClient): void {
+  supabase = client;
+}
 
 const ERRORS: Record<string, string> = {
   SLOT_UNAVAILABLE: "L'orario è già occupato per questo operatore.",

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNod
 import type { Session } from '@supabase/supabase-js';
 import { supabase, dbMessage, RESET_PASSWORD_URL } from '../../lib/supabase';
 import { api } from '../../lib/api';
+import { DEMO_PATH, isDemo } from '../../lib/demo';
 import type { Service, Staff } from '../../lib/types';
 import { Alert, Button, Input, cx } from '../../components/ui';
 import { Brand } from '../../components/Brand';
@@ -17,8 +18,10 @@ import Services from './Services';
 import StaffPage from './StaffPage';
 import SettingsPage from './SettingsPage';
 import AiPage from './AiPage';
+import SetupPage from './SetupPage';
 
 const TABS: { key: Tab; label: string; owner?: boolean; primary?: boolean }[] = [
+  { key: 'configura', label: 'Configura prenotazioni', owner: true },
   { key: 'panoramica', label: 'Panoramica', primary: true },
   { key: 'agenda', label: 'Agenda', primary: true },
   { key: 'richieste', label: 'Richieste', primary: true },
@@ -127,6 +130,9 @@ function Login() {
         <button type="button" onClick={() => switchTo(true)} className="block w-full text-center text-sm text-taupe underline underline-offset-4 hover:text-ink">
           Password dimenticata?
         </button>
+        <a href={DEMO_PATH} className="block w-full text-center text-sm text-taupe underline underline-offset-4 hover:text-ink">
+          Prova la demo senza login (dati di esempio)
+        </a>
       </form>
     </Shell>
   );
@@ -146,7 +152,7 @@ function Authorized({ session }: { session: Session }) {
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>(() => {
     const h = location.hash.slice(1) as Tab;
-    return TABS.some((t) => t.key === h) ? h : 'panoramica';
+    return TABS.some((t) => t.key === h) ? h : 'configura';
   });
   const [agendaDate, setAgendaDate] = useState<string | null>(null);
   const [focusCustomerId, setFocusCustomerId] = useState<string | null>(null);
@@ -164,7 +170,10 @@ function Authorized({ session }: { session: Session }) {
       .maybeSingle()
       .then(({ data, error }) => {
         if (error) setError(dbMessage(error));
-        setRole((data?.role as Role) ?? null);
+        const r = (data?.role as Role) ?? null;
+        setRole(r);
+        // Le sezioni del titolare (compresa la pagina iniziale) non sono visibili agli operatori.
+        if (r === 'staff') setTab((t) => (TABS.find((x) => x.key === t)?.owner ? 'panoramica' : t));
       });
   }, [session.user.id]);
 
@@ -234,6 +243,7 @@ function Authorized({ session }: { session: Session }) {
   }, []);
 
   const logout = () => supabase!.auth.signOut();
+  const demo = isDemo();
 
   if (role === undefined) return <Loading />;
   if (role === null) {
@@ -269,6 +279,14 @@ function Authorized({ session }: { session: Session }) {
   return (
     <AdminContext.Provider value={ctx}>
       <div className="min-h-dvh pb-28 sm:pb-10">
+        {demo && (
+          <div className="bg-champagne px-4 py-2 text-center text-sm text-ink">
+            <strong>Modalità demo</strong>: dati di esempio, le modifiche restano solo in questa pagina e spariscono ricaricandola.{' '}
+            <a href="/admin" className="underline underline-offset-4">
+              Accedi all'area reale
+            </a>
+          </div>
+        )}
         <header className="sticky top-0 z-20 border-b border-line bg-ivory/95 backdrop-blur">
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
             <Brand name="Maylana Coiffeur" size="sm" />
@@ -276,7 +294,7 @@ function Authorized({ session }: { session: Session }) {
             <div className="flex items-center gap-2">
               <span className="hidden text-xs text-taupe md:inline">{session.user.email}</span>
               <Button variant="ghost" className="min-h-9 px-3 text-sm" onClick={logout}>
-                Esci
+                {demo ? 'Esci dalla demo' : 'Esci'}
               </Button>
             </div>
           </div>
@@ -295,6 +313,7 @@ function Authorized({ session }: { session: Session }) {
               <Alert>{error}</Alert>
             </div>
           )}
+          {tab === 'configura' && role === 'owner' && <SetupPage />}
           {tab === 'panoramica' && <Overview />}
           {tab === 'agenda' && <Agenda />}
           {tab === 'richieste' && <Requests onChange={reloadRefs} />}

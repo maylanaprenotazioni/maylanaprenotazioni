@@ -3,8 +3,15 @@ import BookingPage from './pages/BookingPage';
 import { Spinner } from './components/ui';
 import { OfflineBanner, UpdatePrompt } from './components/Online';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { isDemo } from './lib/demo';
 
 const AdminApp = lazy(() => import('./pages/admin/AdminApp'));
+// Demo senza login: installa il client con dati di esempio PRIMA di caricare l'area riservata.
+const AdminDemo = lazy(async () => {
+  const [{ installDemoClient }, { createDemoClient }] = await Promise.all([import('./lib/supabase'), import('./pages/admin/demoClient')]);
+  installDemoClient(createDemoClient());
+  return import('./pages/admin/AdminApp');
+});
 const ManagePage = lazy(() => import('./pages/ManagePage'));
 const ResetPassword = lazy(() => import('./pages/admin/ResetPassword'));
 
@@ -18,7 +25,7 @@ function Loading() {
   );
 }
 
-/** Rotte: /prenota (pubblica), /gestisci (link personale cliente), /admin (riservata), /admin/reset-password (link email). */
+/** Rotte: /prenota (pubblica), /gestisci (link personale cliente), /admin (riservata), /admin/demo (prova senza login), /admin/reset-password (link email). */
 export default function App() {
   let path = window.location.pathname;
   // Link di recupero password arrivato su un altro indirizzo (es. Site URL): lo porta alla pagina dedicata.
@@ -42,6 +49,9 @@ export default function App() {
   if (isReset) {
     // Pubblica: NON passa dal controllo di accesso di AdminApp, verifica solo il link email.
     page = <ResetPassword />;
+  } else if (isDemo()) {
+    document.title = 'Demo area riservata — Maylana';
+    page = <AdminDemo />;
   } else if (isAdmin) {
     document.title = 'Area riservata — Maylana';
     page = <AdminApp />;
