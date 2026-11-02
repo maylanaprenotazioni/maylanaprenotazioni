@@ -162,9 +162,11 @@ export default function BookingPage() {
 function Flow({ catalog, onStage, preset }: { catalog: Catalog; onStage?: (s: Stage) => void; preset?: Preset | null }) {
   const settings = catalog.settings;
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
-  const [group, setGroup] = useState<PublicGroup | null>(() =>
-    new URLSearchParams(location.search).get('sezione') === 'capelli-for-you' ? 'consulenze' : null,
-  );
+  const [group, setGroup] = useState<PublicGroup | null>(() => {
+    const sezione = new URLSearchParams(location.search).get('sezione');
+    if (sezione === 'capelli-for-you') return 'consulenze';
+    return GROUPS.find((g) => g.key === sezione)?.key ?? null;
+  });
   const [selected, setSelected] = useState<Service[]>([]);
   const [staffChoice, setStaffChoice] = useState<string>(ANY);
   const [date, setDate] = useState<string | null>(null);

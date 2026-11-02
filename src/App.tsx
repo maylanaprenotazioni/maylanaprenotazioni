@@ -13,7 +13,9 @@ const AdminDemo = lazy(async () => {
   return import('./pages/admin/AdminApp');
 });
 const ManagePage = lazy(() => import('./pages/ManagePage'));
+const HomePage = lazy(() => import('./pages/HomePage'));
 const ResetPassword = lazy(() => import('./pages/admin/ResetPassword'));
+const EmergencyReset = lazy(() => import('./pages/admin/EmergencyReset'));
 
 const RESET_PATH = '/admin/reset-password';
 
@@ -34,9 +36,7 @@ export default function App() {
     path = RESET_PATH;
   }
   const isReset = path.replace(/\/+$/, '') === RESET_PATH;
-  if (path === '/' || path === '') {
-    window.history.replaceState(null, '', '/prenota' + window.location.search);
-  }
+  const isHome = path === '/' || path === '' || path.replace(/\/+$/, '') === '/home';
   const isAdmin = path.startsWith('/admin');
 
   // Installata dall'area riservata, la PWA si apre sull'agenda.
@@ -46,7 +46,9 @@ export default function App() {
   }, [isAdmin]);
 
   let page;
-  if (isReset) {
+  if (path.replace(/\/+$/, '') === '/admin/recupero-emergenza') {
+    page = <EmergencyReset />;
+  } else if (isReset) {
     // Pubblica: NON passa dal controllo di accesso di AdminApp, verifica solo il link email.
     page = <ResetPassword />;
   } else if (isDemo()) {
@@ -55,6 +57,8 @@ export default function App() {
   } else if (isAdmin) {
     document.title = 'Area riservata — Maylana';
     page = <AdminApp />;
+  } else if (isHome) {
+    page = <HomePage />;
   } else if (path.startsWith('/gestisci')) {
     page = <ManagePage />;
   } else {

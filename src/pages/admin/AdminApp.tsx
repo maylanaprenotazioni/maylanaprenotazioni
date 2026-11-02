@@ -7,6 +7,7 @@ import type { Service, Staff } from '../../lib/types';
 import { Alert, Button, Input, cx } from '../../components/ui';
 import { Brand } from '../../components/Brand';
 import { FORGOT_HASH, Loading, Shell } from './AuthShell';
+import { EMERGENCY_PATH } from './EmergencyReset';
 import { AdminContext, type AdminCtx, type Role, type Tab } from './context';
 import Overview from './Overview';
 import Agenda from './Agenda';
@@ -89,6 +90,8 @@ function Login() {
     setBusy(false);
     if (!error) return setSent(true);
     if (error.status === 429 || /rate limit/i.test(error.message)) setError('Troppe richieste: attendi qualche minuto e riprova.');
+    else if (/sending|smtp|email address not authorized/i.test(error.message) || (error.status ?? 0) >= 500)
+      setError("Il servizio email dell'area riservata non riesce a inviare il messaggio. Usa il recupero di emergenza qui sotto oppure contatta chi gestisce il sito.");
     else setError(/failed to fetch|network/i.test(error.message) ? 'Connessione assente: email non inviata. Riprova.' : error.message);
   };
 
@@ -109,6 +112,9 @@ function Login() {
               </Button>
             </>
           )}
+          <a href={EMERGENCY_PATH} className="block w-full text-center text-sm text-taupe underline underline-offset-4 hover:text-ink">
+            L'email non arriva? Recupero di emergenza
+          </a>
           <Button type="button" variant="ghost" className="w-full" onClick={() => switchTo(false)}>
             Torna all'accesso
           </Button>
